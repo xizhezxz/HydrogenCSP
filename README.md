@@ -1,8 +1,13 @@
 # HydrogenCSP
 
-Code for *Framework-Constrained Diffusion Models for Predicting Hydrogen-Containing Crystal Structures* by Xizhe Zhang and Yizhou Zhu.
+Code for *A Framework-Constrained Diffusion Model for Predicting Hydrogen-Containing Crystal Structures* by Xizhe Zhang and Yizhou Zhu.
 
-HydrogenCSP extends DiffCSP to predict atomic coordinates at a supplied composition and lattice. With a known non-H framework, the framework-fixed sampler generates H coordinates while keeping the framework fixed. With a specified space group and Wyckoff assignment, the symmetry-constrained sampler generates all coordinates, applying the symmetry constraints only to non-H atoms. Both workflows support subsequent H-only optimization.
+HydrogenCSP is a single diffusion model built on DiffCSP. Given the composition and lattice, it predicts atomic positions using one of two sampling modes:
+
+- **Framework-fixed mode** (`--sampler hydrogen`). When the non-H framework is known, this mode predicts H positions while keeping the framework fixed.
+- **Framework-symmetry-constrained mode** (`--sampler spacegroup_hydrogen`). When the non-H coordinates are unknown but the space group is known, this mode predicts all atomic positions. It restricts non-H atoms to their assigned Wyckoff positions and leaves H positions free of those symmetry constraints.
+
+After sampling in either mode, a foundation interatomic potential can refine the H positions while keeping the lattice and non-H framework fixed.
 
 ## Installation
 
@@ -53,7 +58,7 @@ Use `--sampler spacegroup_hydrogen` with a separate output directory to generate
 | Task | Entry points and inputs |
 | --- | --- |
 | H-position prediction | `scripts/test_hydrogen_sampling.py` accepts a CSV with a `cif` column. Set `--num_evals 10` for ten attempts per target. |
-| Completion of missing H sites | `scripts/filter_cod_hydrogen.py` identifies records with missing H coordinates. `scripts/prepare_cod_hydrogen_completion.py` prepares the composition, CIF and expected H count. `scripts/generate_cod_hydrogen_completion.py` runs the framework-fixed sampler. |
+| Completion of missing H sites | `scripts/filter_cod_hydrogen.py` identifies records with missing H coordinates. `scripts/prepare_cod_hydrogen_completion.py` prepares the composition, CIF and expected H count. `scripts/generate_cod_hydrogen_completion.py` runs HydrogenCSP in framework-fixed mode. |
 | Full structure prediction | `scripts/icdd_hpc_pipeline.py` exposes the `select`, `generate`, `relax` and `collect` stages. Supply your own CIFs through a manifest following `examples/manifest.json`. `scripts/icdd_reference_wyckoff_hpc.py` performs the complementary search using the reference assignment. Run the two searches in separate checkouts because they use the same output paths. |
 | PXRD scoring | `diffcsp/common/pxrd_wyckoff.py` implements profile calculation and framework fitting. `scripts/score_icdd_combined.py` reproduces the final comparison from the two searches' prepared candidate records, experimental profiles and scoring masks in the paper's directory layout. |
 
