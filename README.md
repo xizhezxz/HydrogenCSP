@@ -1,6 +1,6 @@
 # HydrogenCSP
 
-Code for *A Framework-Constrained Diffusion Model for Predicting Hydrogen-Containing Crystal Structures* by Xizhe Zhang and Yizhou Zhu.
+Code for *HydrogenCSP: A Framework-Constrained Diffusion Model for Predicting Hydrogen-Containing Crystal Structures* by Xizhe Zhang and Yizhou Zhu.
 
 HydrogenCSP is a single diffusion model built on DiffCSP. Given the composition and lattice, it predicts atomic positions using one of two sampling modes:
 
