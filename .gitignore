@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.ckpt
+*.pt
+*.pth
+manifest.json
+!examples/manifest.json
+/data/
+/results/
+/models/
+/equiformer_v3/
+/outputs/
+/preparation_errors.json
+/run_settings.json

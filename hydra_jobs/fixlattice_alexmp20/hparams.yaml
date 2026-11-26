@@ -1,0 +1,133 @@
+data:
+  root_path: ${oc.env:PROJECT_ROOT}/data/alex_mp_20
+  niggli: true
+  primitive: false
+  preprocess_workers: 10
+  max_atoms: 20
+  eval_model_name: mp20
+  train_max_epochs: 1000
+  early_stopping_patience: 100000
+  datamodule:
+    _target_: diffcsp.pl_data.datamodule.CrystDataModule
+    datasets:
+      train:
+        _target_: diffcsp.pl_data.dataset.CrystDataset
+        name: alex MP-20 train without XRD conditioning
+        path: ${data.root_path}/train.csv
+        save_path: ${data.root_path}/train_xrd850.pt
+        niggli: ${data.niggli}
+        primitive: ${data.primitive}
+        preprocess_workers: ${data.preprocess_workers}
+      val:
+      - _target_: diffcsp.pl_data.dataset.CrystDataset
+        name: alex MP-20 validation without XRD conditioning
+        path: ${data.root_path}/val.csv
+        save_path: ${data.root_path}/val_xrd850.pt
+        niggli: ${data.niggli}
+        primitive: ${data.primitive}
+        preprocess_workers: ${data.preprocess_workers}
+      test:
+      - _target_: diffcsp.pl_data.dataset.CrystDataset
+        name: alex MP-20 test without XRD conditioning
+        path: ${data.root_path}/test.csv
+        save_path: ${data.root_path}/test_xrd850.pt
+        niggli: ${data.niggli}
+        primitive: ${data.primitive}
+        preprocess_workers: ${data.preprocess_workers}
+    num_workers:
+      train: 4
+      val: 4
+      test: 4
+    batch_size:
+      train: 2048
+      val: 2048
+      test: 2048
+logging:
+  val_check_interval: 1
+  progress_bar_refresh_rate: 1
+  tensorboard:
+    name: tensorboard
+    version: ''
+    default_hp_metric: false
+  training_overview:
+    every_n_epochs: 1
+    dpi: 150
+  lr_monitor:
+    logging_interval: step
+    log_momentum: false
+model:
+  decoder:
+    _target_: diffcsp.pl_modules.cspnet.CSPNet
+    hidden_dim: 512
+    latent_dim: 0
+    max_atoms: 100
+    num_layers: 6
+    act_fn: silu
+    dis_emb: sin
+    num_freqs: 128
+    edge_style: fc
+    max_neighbors: ${model.max_neighbors}
+    cutoff: ${model.radius}
+    ln: true
+    ip: true
+  beta_scheduler:
+    _target_: diffcsp.pl_modules.diff_utils.BetaScheduler
+    timesteps: ${model.timesteps}
+    scheduler_mode: cosine
+  sigma_scheduler:
+    _target_: diffcsp.pl_modules.diff_utils.SigmaScheduler
+    timesteps: ${model.timesteps}
+    sigma_begin: 0.005
+    sigma_end: 0.5
+  _target_: diffcsp.pl_modules.diffusion.CSPDiffusion
+  time_dim: 256
+  latent_dim: 0
+  cost_coord: 1.0
+  keep_lattice: true
+  cost_lattice: 0.0
+  max_neighbors: 20
+  radius: 7.0
+  timesteps: 1000
+optim:
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 0.001
+    betas:
+    - 0.9
+    - 0.999
+    eps: 1.0e-08
+    weight_decay: 0
+  use_lr_scheduler: true
+  lr_scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    factor: 0.6
+    patience: 30
+    min_lr: 0.0001
+train:
+  deterministic: true
+  random_seed: 42
+  pl_trainer:
+    fast_dev_run: false
+    accelerator: gpu
+    devices: 1
+    precision: 32
+    max_epochs: ${data.train_max_epochs}
+    accumulate_grad_batches: 1
+    num_sanity_val_steps: 2
+    gradient_clip_val: 0.5
+    gradient_clip_algorithm: value
+    profiler: null
+  monitor_metric: val_loss
+  monitor_metric_mode: min
+  early_stopping:
+    patience: ${data.early_stopping_patience}
+    verbose: false
+  model_checkpoints:
+    save_top_k: 1
+    verbose: false
+    save_last: true
+expname: fixlattice_alexmp20_1
+core:
+  version: 0.0.1
+  tags:
+  - ${now:%Y-%m-%d}
