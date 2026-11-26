@@ -27,7 +27,16 @@ Inspect `results/selection/illustrative/ranking.json` for the number of compatib
 
 ## Generate structures
 
-Sampling requires the trained fixed-lattice DiffCSP checkpoint and its matching Hydra configuration. The configuration is in `hydra_jobs/fixlattice_alexmp20/hparams.yaml`. Supply the checkpoint as `hydra_jobs/fixlattice_alexmp20/checkpoints/last.ckpt`. This source release does not distribute the trained weights.
+Both sampling modes use the same trained HydrogenCSP checkpoint. Download the [inference weights from the v1.0.0 release](https://github.com/xizhezxz/HydrogenCSP/releases/download/v1.0.0/last.ckpt) into the directory shown below. The matching Hydra configuration is included in `hydra_jobs/fixlattice_alexmp20/hparams.yaml`.
+
+```bash
+mkdir -p hydra_jobs/fixlattice_alexmp20/checkpoints
+curl --fail --location --retry 3 \
+  --output hydra_jobs/fixlattice_alexmp20/checkpoints/last.ckpt \
+  https://github.com/xizhezxz/HydrogenCSP/releases/download/v1.0.0/last.ckpt
+```
+
+The file is 49,221,147 bytes. Its SHA-256 digest is `99f0087c91643f74739d59586aba566a3999b0c1aa592d6f292e5f26ce28dac7`.
 
 ```bash
 python scripts/test_hydrogen_sampling.py \
